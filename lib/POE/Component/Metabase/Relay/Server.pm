@@ -4,7 +4,6 @@ use strict;
 use warnings;
 use CPAN::Testers::Report;
 use POE qw[Filter::Stream];
-use POE::Component::Metabase::Client::Submit;
 use POE::Component::Metabase::Relay::Server::Queue;
 use Test::POE::Server::TCP;
 use Carp                      ();
