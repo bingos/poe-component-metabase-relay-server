@@ -9,6 +9,7 @@ use CPAN::Testers::Report     ();
 use Metabase::User::Profile   ();
 use Metabase::User::Secret    ();
 use JSON ();
+use Params::Util qw[_HASH];
 use Time::HiRes ();
 use Data::UUID;
 use vars qw[$VERSION];
@@ -98,12 +99,13 @@ has _http_alias => (
 
 sub _build__easydbi {
   my $self = shift;
+  warn ref $self->db_opts, "\n" if $self->debug;
   POE::Component::EasyDBI->new(
     alias    => '',
     dsn      => $self->dsn,
     username => $self->username,
     password => $self->password,
-    options  => $self->db_opts,
+    ( _HASH( $self->db_opts ) ? ( options => $self->db_opts ) : () ),
   );
 }
 

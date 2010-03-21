@@ -15,6 +15,7 @@ requires 'DBD::SQLite' => '1.29';
 requires 'DBI' => '1.609';
 requires 'JSON' => '2.17';
 requires 'JSON::XS' => '2.29';
+requires 'Params::Util' => '1.01';
 requires 'POE' => '1.287';
 requires 'POE::Component::Client::HTTP' => '0.895';
 requires 'POE::Component::EasyDBI' => '1.23';
