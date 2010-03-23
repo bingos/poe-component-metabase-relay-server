@@ -203,7 +203,7 @@ event 'process_report' => sub {
   my $metabase_report = CPAN::Testers::Report->open(
     resource => 'cpan:///distfile/' . $data->{distfile}
   );
-
+  warn $data->{distfile}, "\n" if $self->debug;
   $metabase_report->add( 'CPAN::Testers::Fact::LegacyReport' => {
     map { ( $_ => $data->{$_} ) } qw(grade osname osversion archname perl_version textreport)
   });
