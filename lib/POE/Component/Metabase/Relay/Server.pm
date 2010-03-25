@@ -200,9 +200,12 @@ event 'process_report' => sub {
   my @present = grep { defined $data->{$_} } @fields;
   return unless scalar @present == scalar @fields;
   # Build CPAN::Testers::Report with its various component facts.
-  my $metabase_report = CPAN::Testers::Report->open(
+  my $metabase_report = eval { CPAN::Testers::Report->open(
     resource => 'cpan:///distfile/' . $data->{distfile}
-  );
+  ); };
+
+  return unless $metabase_report;
+
   warn $data->{distfile}, "\n" if $self->debug;
   $metabase_report->add( 'CPAN::Testers::Fact::LegacyReport' => {
     map { ( $_ => $data->{$_} ) } qw(grade osname osversion archname perl_version textreport)

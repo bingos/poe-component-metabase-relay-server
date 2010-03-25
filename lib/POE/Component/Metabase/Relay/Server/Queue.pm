@@ -14,13 +14,15 @@ use Time::HiRes ();
 use Data::UUID;
 use vars qw[$VERSION];
 
+use constant DELAY => 150;
+
 $VERSION = '0.02';
 
 my $sql = {
   'create' => 'CREATE TABLE IF NOT EXISTS queue ( id varchar(150), submitted varchar(32), attempts INTEGER, data BLOB )',
   'insert' => 'INSERT INTO queue values(?,?,?,?)',
   'delete' => 'DELETE FROM queue where id = ?',
-  'queue'  => 'SELECT * FROM queue ORDER BY submitted',
+  'queue'  => 'SELECT * FROM queue ORDER BY submitted limit 10',
   'update' => 'UPDATE queue SET attempts = ? WHERE id = ?',
 };
 
@@ -129,11 +131,13 @@ sub START {
     Alias           => $self->_http_alias,
     FollowRedirects => 2,
   );
+  $kernel->delay( '_process_queue', DELAY );
   return;
 }
 
 event 'shutdown' => sub {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
+  $kernel->alarm_remove_all();
   $self->_easydbi->shutdown;
   $kernel->post( 
     $self->_http_alias,
@@ -167,6 +171,7 @@ event 'submit' => sub {
 
 event '_process_queue' => sub {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
+  $kernel->delay( '_process_queue', DELAY );
   $self->_easydbi->arrayhash(
     sql => $sql->{queue},
     event => '_queue_db_result',
