@@ -1,0 +1,59 @@
+NAME
+    POE::Component::Metabase::Relay::Server - A Metabase relay server
+    component
+
+SYNOPSIS
+      use strict;
+      use warnings;
+
+      use POE qw[Component::Metabase::Relay::Server];
+
+      my $test_httpd = POE::Component::Metabase::Relay::Server->spawn( 
+        port    => 8080, 
+        id_file => shift, 
+        dsn     => 'dbi:SQLite:dbname=dbfile',
+        uri     => 'https://metabase.example.foo/',
+        debug   => 1,
+      );
+
+      $poe_kernel->run();
+      exit 0;
+
+DESCRIPTION
+    POE::Component::Metabase::Relay::Server is a relay server for Metabase.
+    It provides a listener that accepts connections from
+    Test::Reporter::Transport::Socket based CPAN Testers and relays the
+    Storable serialised data to Metabase using
+    POE::Component::Metabase::Client::Submit.
+
+CONSTRUCTOR
+    "spawn"
+        Spawns a new component session and creates a SQLite database if it
+        doesn't already exist.
+
+        Takes a number of mandatory parameters:
+
+          'id_file', the file path of a Metabase ID file;
+          'dsn', a DBI DSN to use to store the submission queue;
+          'uri', the uri of metabase server to submit to;
+
+        and a number of optional parameters:
+
+          'address', the address to bind the listener to, defaults to INADDR_ANY;
+          'port', the port to listen on, defaults to 0, which picks a random port;
+          'username', a DSN username if required;
+          'password', a DSN password if required;
+          'db_opts', a hashref of DBD options that is passed to POE::Component::EasyDBI;
+          'debug', enable debugging information;
+
+AUTHOR
+    Chris "BinGOs" Williams
+
+LICENSE
+    Copyright © Chris Williams
+
+    This module may be used, modified, and distributed under the same terms
+    as Perl itself. Please see the license that came with your Perl
+    distribution for details.
+
+SEE ALSO

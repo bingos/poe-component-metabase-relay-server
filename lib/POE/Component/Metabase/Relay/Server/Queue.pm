@@ -101,7 +101,6 @@ has _http_alias => (
 
 sub _build__easydbi {
   my $self = shift;
-  warn ref $self->db_opts, "\n" if $self->debug;
   POE::Component::EasyDBI->new(
     alias    => '',
     dsn      => $self->dsn,
@@ -214,12 +213,21 @@ event '_submit_status' => sub {
   }
   else {
     warn "Submit error ", $res->{error}, "\n" if $self->debug;
-    $attempts++;
-    $self->_easydbi->do(
-      sql => $sql->{update},
-      event => '_generic_db_result',
-      placeholders => [ $attempts, $id ],
-    );
+    if ( $res->{content} =~ /GUID conflicts with an existing object/i ) {
+      $self->_easydbi->do(
+        sql => $sql->{delete},
+        event => '_generic_db_result',
+        placeholders => [ $id ],
+      );
+    }
+    else {
+      $attempts++;
+      $self->_easydbi->do(
+        sql => $sql->{update},
+        event => '_generic_db_result',
+        placeholders => [ $attempts, $id ],
+      );
+    }
   }
   return;
 };
@@ -245,3 +253,78 @@ __PACKAGE__->meta->make_immutable;
 1;
 
 __END__
+
+=head1 NAME
+
+POE::Component::Metabase::Relay::Server::Queue - Submission queue for the metabase relay
+
+=head1 DESCRIPTION
+
+POE::Component::Metabase::Relay::Server::Queue is the submission queue for L<POE::Component::Metabase::Relay::Server>.
+
+It is based on L<POE::Component::EasyDBI> database and uses L<POE::Component::Metabase::Client::Submit> to send
+reports to a L<Metabase> server.
+
+=head1 CONSTRUCTOR
+
+=over
+
+=item C<spawn>
+
+Spawns a new component session and creates a SQLite database if it doesn't already exist.
+
+Takes a number of mandatory parameters:
+
+  'dsn', a DBI DSN to use to store the submission queue;
+  'profile', a Metabase::User::Profile object;
+  'secret', a Metabase::User::Secret object;
+  'uri', the uri of metabase server to submit to;
+
+and a number of optional parameters:
+
+  'username', a DSN username if required;
+  'password', a DSN password if required;
+  'db_opts', a hashref of DBD options that is passed to POE::Component::EasyDBI;
+  'debug', enable debugging information;
+
+=back
+
+=head1 INPUT EVENTS
+
+=over
+
+=item C<submit>
+
+Takes one parameter a L<Metabase::Fact> to submit.
+
+=item C<shutdown>
+
+Terminates the component.
+
+=back
+
+=head1 AUTHOR
+
+Chris C<BinGOs> Williams
+
+=head1 LICENSE
+
+Copyright E<copy> Chris Williams
+
+This module may be used, modified, and distributed under the same terms as Perl itself. Please see the license that came with your Perl distribution for details.
+
+=head1 SEE ALSO
+
+L<Metabase>
+
+L<Metabase::User::Profile>
+
+L<Metabase::User::Secret>
+
+L<POE::Component::Metabase::Client::Submit>
+
+L<POE::Component::Metabase::Relay::Server>
+
+L<POE::Component::EasyDBI>
+
+=cut

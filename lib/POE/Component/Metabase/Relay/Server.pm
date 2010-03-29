@@ -151,7 +151,6 @@ sub START {
   $self->_load_id_file;
   $self->relayd;
   $self->queue;
-  warn ref $self->id_file, "\n" if $self->debug;
   return;
 }
 
@@ -168,8 +167,8 @@ event 'shutdown' => sub {
 event 'relayd_registered' => sub {
   my ($kernel,$self,$relayd) = @_[KERNEL,OBJECT,ARG0];
   return unless $self->debug;
-  warn ref $relayd, "\n";
-  warn $relayd->port, "\n";
+  warn "Listening on '", $relayd->port, "'\n";
+  $self->_set_port( $relayd->port );
   return;
 };
  
@@ -264,3 +263,71 @@ __PACKAGE__->meta->make_immutable;
 1;
 
 __END__
+
+
+=head1 NAME
+
+POE::Component::Metabase::Relay::Server - A Metabase relay server component
+
+=head1 SYNOPSIS
+
+  use strict;
+  use warnings;
+
+  use POE qw[Component::Metabase::Relay::Server];
+
+  my $test_httpd = POE::Component::Metabase::Relay::Server->spawn( 
+    port    => 8080, 
+    id_file => shift, 
+    dsn     => 'dbi:SQLite:dbname=dbfile',
+    uri     => 'https://metabase.example.foo/',
+    debug   => 1,
+  );
+
+  $poe_kernel->run();
+  exit 0;
+
+=head1 DESCRIPTION
+
+POE::Component::Metabase::Relay::Server is a relay server for L<Metabase>. It provides a listener
+that accepts connections from L<Test::Reporter::Transport::Socket> based CPAN Testers and 
+relays the L<Storable> serialised data to L<Metabase> using L<POE::Component::Metabase::Client::Submit>.
+
+=head1 CONSTRUCTOR
+
+=over
+
+=item C<spawn>
+
+Spawns a new component session and creates a SQLite database if it doesn't already exist.
+
+Takes a number of mandatory parameters:
+
+  'id_file', the file path of a Metabase ID file;
+  'dsn', a DBI DSN to use to store the submission queue;
+  'uri', the uri of metabase server to submit to;
+
+and a number of optional parameters:
+
+  'address', the address to bind the listener to, defaults to INADDR_ANY;
+  'port', the port to listen on, defaults to 0, which picks a random port;
+  'username', a DSN username if required;
+  'password', a DSN password if required;
+  'db_opts', a hashref of DBD options that is passed to POE::Component::EasyDBI;
+  'debug', enable debugging information;
+
+=back
+
+=head1 AUTHOR
+
+Chris C<BinGOs> Williams
+
+=head1 LICENSE
+
+Copyright E<copy> Chris Williams
+
+This module may be used, modified, and distributed under the same terms as Perl itself. Please see the license that came with your Perl distribution for details.
+
+=head1 SEE ALSO
+
+=cut
