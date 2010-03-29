@@ -32,6 +32,7 @@ requires 'Test::POE::Server::TCP' => '1.08';
 requires 'Time::HiRes' => 0;
 requires 'Storable' => 0;
 requires 'URI' => '1.52';
+makemaker_args(dist => { PREOP => "$^X ./tools/git-log.pl > ./Changes" });
 githubmeta;
 auto_provides;
 WriteAll();
