@@ -16,7 +16,7 @@ use vars qw[$VERSION];
 
 use constant DELAY => 150;
 
-$VERSION = '0.02';
+$VERSION = '0.04';
 
 my $sql = {
   'create' => 'CREATE TABLE IF NOT EXISTS queue ( id varchar(150), submitted varchar(32), attempts INTEGER, data BLOB )',
@@ -68,6 +68,12 @@ has 'password' => (
 
 has 'debug' => (
   is => 'rw',
+  isa => 'Bool',
+  default => 0,
+);
+
+has 'multiple' => (
+  is => 'ro',
   isa => 'Bool',
   default => 0,
 );
@@ -125,6 +131,7 @@ sub START {
     sql => $sql->{create},
     event => '_generic_db_result',
   );
+  return if $self->multiple;
   $self->_set_http_alias( join '-', __PACKAGE__, $self->get_session_id );
   POE::Component::Client::HTTP->spawn(
     Alias           => $self->_http_alias,
@@ -193,7 +200,7 @@ event '_queue_db_result' => sub {
       fact    => $report,
       uri     => $self->uri->as_string,
       context => [ $row->{id}, $row->{attempts} ],
-      http_alias => $self->_http_alias,
+      ( $self->multiple ? () : ( http_alias => $self->_http_alias ) ),
     );
     
   }
@@ -286,6 +293,7 @@ and a number of optional parameters:
   'password', a DSN password if required;
   'db_opts', a hashref of DBD options that is passed to POE::Component::EasyDBI;
   'debug', enable debugging information;
+  'multiple', set to true to enable the Queue to use multiple PoCo-Client-HTTPs, default 0;
 
 =back
 

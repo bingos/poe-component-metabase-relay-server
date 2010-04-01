@@ -13,7 +13,7 @@ use Metabase::User::Profile   ();
 use Metabase::User::Secret    ();
 use vars qw[$VERSION];
 
-$VERSION = '0.02';
+$VERSION = '0.04';
 
 my @fields = qw(
   osversion
@@ -29,12 +29,6 @@ use MooseX::POE;
 use MooseX::Types::Path::Class qw[File];
 use MooseX::Types::URI qw[Uri];
  
-has 'debug' => (
-  is => 'rw',
-  isa => 'Bool',
-  default => 0,
-);
-
 has 'address' => (
   is => 'ro',
 );
@@ -81,6 +75,18 @@ has 'db_opts' => (
   is => 'ro',
   isa => 'HashRef',
   default => sub {{}},
+);
+
+has 'debug' => (
+  is => 'rw',
+  isa => 'Bool',
+  default => 0,
+);
+
+has 'multiple' => (
+  is => 'ro',
+  isa => 'Bool',
+  default => 0,
 );
 
 has '_profile' => (
@@ -139,6 +145,7 @@ sub _build__queue {
     profile  => $self->_profile,
     secret   => $self->_secret,
     debug    => $self->debug,
+    multiple => $self->multiple,
   );
 }
 
@@ -315,6 +322,7 @@ and a number of optional parameters:
   'password', a DSN password if required;
   'db_opts', a hashref of DBD options that is passed to POE::Component::EasyDBI;
   'debug', enable debugging information;
+  'multiple', set to true to enable the Queue to use multiple PoCo-Client-HTTPs, default 0;
 
 =back
 

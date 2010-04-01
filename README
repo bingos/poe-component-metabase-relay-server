@@ -45,6 +45,7 @@ CONSTRUCTOR
           'password', a DSN password if required;
           'db_opts', a hashref of DBD options that is passed to POE::Component::EasyDBI;
           'debug', enable debugging information;
+          'multiple', set to true to enable the Queue to use multiple PoCo-Client-HTTPs, default 0;
 
 AUTHOR
     Chris "BinGOs" Williams
