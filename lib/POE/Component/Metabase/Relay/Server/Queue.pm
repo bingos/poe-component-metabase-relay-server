@@ -137,6 +137,7 @@ sub START {
     sql => $sql->{create},
     event => '_generic_db_result',
   );
+  $kernel->yield( 'do_vacuum' );
   return if $self->multiple;
   $self->_set_http_alias( join '-', __PACKAGE__, $self->get_session_id );
   POE::Component::Client::HTTP->spawn(
@@ -146,6 +147,17 @@ sub START {
   $kernel->delay( '_process_queue', DELAY );
   return;
 }
+
+event 'do_vacuum' => sub {
+  my ($kernel,$self) = @_[KERNEL,OBJECT];
+  $self->_easydbi->do(
+    sql => 'VACUUM',
+    event => '_generic_db_result',
+  );
+
+  $kernel->delay( 'do_vacuum' => DELAY * 60 );
+  return;
+};
 
 event 'shutdown' => sub {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
