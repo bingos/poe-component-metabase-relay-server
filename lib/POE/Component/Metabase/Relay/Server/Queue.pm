@@ -105,6 +105,12 @@ has _http_alias => (
   writer => '_set_http_alias',
 );
 
+has '_processing' => (
+  is => 'ro',
+  isa => 'HashRef',
+  default => sub {{}},
+);
+
 sub _build__easydbi {
   my $self = shift;
   POE::Component::EasyDBI->new(
@@ -189,6 +195,14 @@ event '_queue_db_result' => sub {
     return;
   }
   foreach my $row ( @{ $result->{result} } ) {
+    # Have we seen this report before?
+    if ( exists $self->_processing->{ $row->{id} } ) {
+      warn "Queue retrieved same fact '$row->{id}', skipping\n" if $self->debug;
+      next;
+    } else {
+      $self->_processing->{ $row->{id} }++;
+    }
+
     my $report = $self->_decode_fact( $row->{data} );
     warn "Queue retrieved '$row->{id}' for processing\n" if $self->debug;
     POE::Component::Metabase::Client::Submit->submit(
@@ -208,6 +222,7 @@ event '_queue_db_result' => sub {
 event '_submit_status' => sub {
   my ($kernel,$self,$res) = @_[KERNEL,OBJECT,ARG0];
   my ($id,$attempts) = @{ $res->{context} };
+  delete $self->_processing->{ $id };
   if ( $res->{success} ) {
     warn "Submit '$id' success\n" if $self->debug;
     $self->_easydbi->do(
