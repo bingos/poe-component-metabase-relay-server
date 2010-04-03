@@ -219,10 +219,18 @@ event '_queue_db_result' => sub {
   return;
 };
 
+event '_clear_processing' => sub {
+  my($kernel,$self,$id) = @_[KERNEL,OBJECT,ARG0];
+  delete $self->_processing->{ $id } if exists
+    $self->_processing->{ $id };
+
+  return;
+};
+
 event '_submit_status' => sub {
   my ($kernel,$self,$res) = @_[KERNEL,OBJECT,ARG0];
   my ($id,$attempts) = @{ $res->{context} };
-  delete $self->_processing->{ $id };
+  $kernel->delay_set( '_clear_processing' => DELAY, $id );
   if ( $res->{success} ) {
     warn "Submit '$id' success\n" if $self->debug;
     $self->_easydbi->do(
