@@ -217,7 +217,7 @@ event '_submit_status' => sub {
     );
   }
   else {
-    warn "Submit '$id' error ", $res->{error}, "\n" if $self->debug;
+    warn "Submit '$id' error: $res->{error}\n$res->{content}\n" if $self->debug;
     if ( $res->{content} =~ /GUID conflicts with an existing object/i ) {
       $self->_easydbi->do(
         sql => $sql->{delete},
