@@ -22,7 +22,7 @@ my $sql = {
   'create' => 'CREATE TABLE IF NOT EXISTS queue ( id varchar(150), submitted varchar(32), attempts INTEGER, data BLOB )',
   'insert' => 'INSERT INTO queue values(?,?,?,?)',
   'delete' => 'DELETE FROM queue where id = ?',
-  'queue'  => 'SELECT * FROM queue ORDER BY submitted limit 10',
+  'queue'  => 'SELECT * FROM queue ORDER BY attempts ASC, submitted ASC limit 10',
   'update' => 'UPDATE queue SET attempts = ? WHERE id = ?',
 };
 
@@ -154,10 +154,7 @@ event 'shutdown' => sub {
 
 event '_generic_db_result' => sub {
   my ($kernel,$self,$result) = @_[KERNEL,OBJECT,ARG0];
-  if ( $self->debug ) {
-    warn $result->{sql}, "\n";
-    warn $result->{result}, "\n";
-  }
+  warn "DB result: " . JSON->new->pretty(1)->encode( $result ) . "\n" if $self->debug;
   $kernel->yield( '_process_queue' ) if $result->{_process};
   return;
 };
@@ -193,6 +190,7 @@ event '_queue_db_result' => sub {
   }
   foreach my $row ( @{ $result->{result} } ) {
     my $report = $self->_decode_fact( $row->{data} );
+    warn "Queue retrieved '$row->{id}' for processing\n" if $self->debug;
     POE::Component::Metabase::Client::Submit->submit(
       event   => '_submit_status',
       profile => $self->profile,
@@ -211,7 +209,7 @@ event '_submit_status' => sub {
   my ($kernel,$self,$res) = @_[KERNEL,OBJECT,ARG0];
   my ($id,$attempts) = @{ $res->{context} };
   if ( $res->{success} ) {
-    warn "Submit success\n" if $self->debug;
+    warn "Submit '$id' success\n" if $self->debug;
     $self->_easydbi->do(
       sql => $sql->{delete},
       event => '_generic_db_result',
@@ -219,7 +217,7 @@ event '_submit_status' => sub {
     );
   }
   else {
-    warn "Submit error ", $res->{error}, "\n" if $self->debug;
+    warn "Submit '$id' error ", $res->{error}, "\n" if $self->debug;
     if ( $res->{content} =~ /GUID conflicts with an existing object/i ) {
       $self->_easydbi->do(
         sql => $sql->{delete},
