@@ -16,7 +16,7 @@ use vars qw[$VERSION];
 
 use constant DELAY => 150;
 
-$VERSION = '0.04';
+$VERSION = '0.06';
 
 my $sql = {
   'create' => 'CREATE TABLE IF NOT EXISTS queue ( id varchar(150), submitted varchar(32), attempts INTEGER, data BLOB )',

@@ -13,7 +13,7 @@ use Metabase::User::Profile   ();
 use Metabase::User::Secret    ();
 use vars qw[$VERSION];
 
-$VERSION = '0.04';
+$VERSION = '0.06';
 
 my @fields = qw(
   osversion
