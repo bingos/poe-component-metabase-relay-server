@@ -1,3 +1,15 @@
+==============================
+2010-04-01 10:27:31 +0100 0.04
+==============================
+
+  commit 025e85bf315d3fc956b1c7e55f9ee3cf89c1349a
+  Author: Chris Williams <chris@bingosnet.co.uk>
+  Date:   Thu Apr 1 10:27:31 2010 +0100
+  
+    Added an option 'multiple' that enables
+    POE::Component::Metabase::Client::Submit to spawn a HTTP poco for
+    each submit instead of using a common HTTP poco. 
+
 ==============
 End of Excerpt
 ==============
