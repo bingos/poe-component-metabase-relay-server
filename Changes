@@ -1,4 +1,51 @@
 ==============================
+2010-04-05 22:47:36 +0100 0.06
+==============================
+
+  commit 8d05b5d6d9d66d406aab523b9fa16c26f06031be
+  Author: Chris Williams <chris@bingosnet.co.uk>
+  Date:   Mon Apr 5 22:47:36 2010 +0100
+  
+    Version bump
+
+  commit 41caea60dc0f9e8c6f563037bbcc1d9a4d4a5f44
+  Author: Chris Williams <chris@bingosnet.co.uk>
+  Date:   Mon Apr 5 22:34:42 2010 +0100
+  
+    Updated Changes
+
+  commit 0873c12ec1ab298bde4d23c951ac3eee8d501549
+  Author: Apocalypse <perl@0ne.us>
+  Date:   Sat Apr 3 16:58:58 2010 -0700
+  
+    add VACUUM so we keep the db small
+
+  commit 1c4f1a24ef2a651f00f0576effedd00dc9480add
+  Author: Apocalypse <perl@0ne.us>
+  Date:   Sat Apr 3 15:44:37 2010 -0700
+  
+    use delay_add to delete entries from processing cache to fix a bug
+
+  commit 4d503a0a72ab1887ca767ab77cab55f10994a38d
+  Author: Apocalypse <perl@0ne.us>
+  Date:   Sat Apr 3 15:36:15 2010 -0700
+  
+    add caching logic so we don't process same guid more than twice in
+    the same session
+
+  commit 11a3f640772eb3a2497c4e488bb79e25f47479e2
+  Author: Apocalypse <perl@0ne.us>
+  Date:   Sat Apr 3 14:44:06 2010 -0700
+  
+    tweak debug printouts
+
+  commit 3ce287a7c1e882c208a6a0d81d6e04c0752c1b7b
+  Author: Apocalypse <perl@0ne.us>
+  Date:   Sat Apr 3 14:18:48 2010 -0700
+  
+    add more debugging printouts and fix some SQL bugs 
+
+==============================
 2010-04-01 10:27:31 +0100 0.04
 ==============================
 
