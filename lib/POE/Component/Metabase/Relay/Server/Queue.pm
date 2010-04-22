@@ -84,6 +84,17 @@ has 'db_opts' => (
   default => sub {{}},
 );
 
+has 'no_relay' => (
+  is => 'rw',
+  isa => 'Bool',
+  default => 0,
+  trigger => sub {
+    my( $self, $new, $old ) = @_;
+    return if ! $self->_has_easydbi;
+    $self->yield( '_process_queue' ) if ! $new;
+  },
+);
+
 has '_uuid' => (
   is => 'ro',
   isa => 'Data::UUID',
@@ -138,13 +149,14 @@ sub START {
     event => '_generic_db_result',
   );
   $kernel->yield( 'do_vacuum' );
-  return if $self->multiple;
-  $self->_set_http_alias( join '-', __PACKAGE__, $self->get_session_id );
-  POE::Component::Client::HTTP->spawn(
-    Alias           => $self->_http_alias,
-    FollowRedirects => 2,
-  );
-  $kernel->delay( '_process_queue', DELAY );
+  if ( ! $self->multiple ) {
+    $self->_set_http_alias( join '-', __PACKAGE__, $self->get_session_id );
+    POE::Component::Client::HTTP->spawn(
+      Alias           => $self->_http_alias,
+      FollowRedirects => 2,
+    );
+  }
+  $kernel->delay( '_process_queue', DELAY ) if ! $self->no_relay;
   return;
 }
 
@@ -185,13 +197,14 @@ event 'submit' => sub {
     sql => $sql->{insert},
     event => '_generic_db_result',
     placeholders => [ $self->_uuid->create_b64(), $self->_time, 0, $self->_encode_fact( $fact ) ],
-    _process => 1,
+    ( $self->no_relay ? () : ( _process => 1 ) ),
   );
   return;
 };
 
 event '_process_queue' => sub {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
+  return if $self->no_relay;
   $kernel->delay( '_process_queue', DELAY );
   $self->_easydbi->arrayhash(
     sql => $sql->{queue},
@@ -327,6 +340,7 @@ and a number of optional parameters:
   'db_opts', a hashref of DBD options that is passed to POE::Component::EasyDBI;
   'debug', enable debugging information;
   'multiple', set to true to enable the Queue to use multiple PoCo-Client-HTTPs, default 0;
+  'no_relay', set to true to disable report submissions to the Metabase, default 0;
 
 =back
 

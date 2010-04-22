@@ -89,6 +89,17 @@ has 'multiple' => (
   default => 0,
 );
 
+has 'no_relay' => (
+  is => 'rw',
+  isa => 'Bool',
+  default => 0,
+  trigger => sub {
+    my( $self, $new, $old ) = @_;
+    return if ! $self->_has_queue;
+    $self->queue->no_relay( $new );
+  },
+);
+
 has '_profile' => (
   is => 'ro',
   isa => 'Metabase::User::Profile',
@@ -146,6 +157,7 @@ sub _build__queue {
     secret   => $self->_secret,
     debug    => $self->debug,
     multiple => $self->multiple,
+    no_relay => $self->no_relay,
   );
 }
 
@@ -329,6 +341,7 @@ and a number of optional parameters:
   'db_opts', a hashref of DBD options that is passed to POE::Component::EasyDBI;
   'debug', enable debugging information;
   'multiple', set to true to enable the Queue to use multiple PoCo-Client-HTTPs, default 0;
+  'no_relay', set to true to disable report submissions to the Metabase, default 0;
 
 =back
 
