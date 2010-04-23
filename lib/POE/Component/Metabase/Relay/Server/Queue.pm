@@ -222,7 +222,7 @@ event '_queue_db_result' => sub {
   foreach my $row ( @{ $result->{result} } ) {
     # Have we seen this report before?
     if ( exists $self->_processing->{ $row->{id} } ) {
-      warn "Queue retrieved same fact '$row->{id}', skipping\n" if $self->debug;
+#      warn "Queue retrieved same fact '$row->{id}', skipping\n" if $self->debug;
       next;
     } else {
       $self->_processing->{ $row->{id} }++;
