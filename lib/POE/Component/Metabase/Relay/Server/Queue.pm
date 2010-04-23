@@ -262,6 +262,7 @@ event '_submit_status' => sub {
       sql => $sql->{delete},
       event => '_generic_db_result',
       placeholders => [ $id ],
+      ( $self->no_relay ? () : ( _process => 1 ) ),
     );
   }
   else {
