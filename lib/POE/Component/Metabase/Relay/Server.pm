@@ -216,7 +216,7 @@ event 'relayd_disconnected' => sub {
   my $data = delete $self->_requests->{$id};
   my $report = eval { Storable::thaw($data); };
   if ( defined $report and ref $report and ref $report eq 'HASH' ) {
-    warn "Client '$id' sent report: \n" . JSON->new->pretty(1)->encode( $report ) . "\n" if $self->debug;
+#    warn "Client '$id' sent report: \n" . JSON->new->pretty(1)->encode( $report ) . "\n" if $self->debug;
     $kernel->yield( 'process_report', $report );
   } else {
     warn "Client '$id' failed to send parsable data!\n" if $self->debug;
@@ -227,7 +227,7 @@ event 'relayd_disconnected' => sub {
 event 'relayd_client_input' => sub {
   my ($kernel,$self,$id,$data) = @_[KERNEL,OBJECT,ARG0,ARG1];
   $self->_requests->{$id} .= $data;
-  warn "Client '$id' sent chunk of data: \n" . JSON->new->allow_nonref(1)->pretty(1)->encode( $data ) . "\n" if $self->debug;
+#  warn "Client '$id' sent chunk of data: \n" . JSON->new->allow_nonref(1)->pretty(1)->encode( $data ) . "\n" if $self->debug;
   return;
 };
 
@@ -236,7 +236,7 @@ event 'process_report' => sub {
   my @present = grep { defined $data->{$_} } @fields;
   return unless scalar @present == scalar @fields;
   # Build CPAN::Testers::Report with its various component facts.
-  warn "process_report for distfile: $data->{distfile}\n" if $self->debug;
+#  warn "process_report for distfile: $data->{distfile}\n" if $self->debug;
   my $metabase_report = eval { CPAN::Testers::Report->open(
     resource => 'cpan:///distfile/' . $data->{distfile}
   ); };
