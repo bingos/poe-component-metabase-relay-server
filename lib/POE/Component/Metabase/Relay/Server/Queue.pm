@@ -22,7 +22,7 @@ my $sql = {
   'create' => 'CREATE TABLE IF NOT EXISTS queue ( id varchar(150), submitted varchar(32), attempts INTEGER, data BLOB )',
   'insert' => 'INSERT INTO queue values(?,?,?,?)',
   'delete' => 'DELETE FROM queue where id = ?',
-  'queue'  => 'SELECT * FROM queue ORDER BY attempts ASC, submitted ASC limit 10',
+  'queue'  => 'SELECT * FROM queue ORDER BY attempts ASC, submitted ASC limit ', # the limit is appended via "submissions"
   'update' => 'UPDATE queue SET attempts = ? WHERE id = ?',
 };
 
@@ -93,6 +93,12 @@ has 'no_relay' => (
     return if ! $self->_has_easydbi;
     $self->yield( '_process_queue' ) if ! $new;
   },
+);
+
+has 'submissions' => (
+  is => 'rw',
+  isa => 'Int',
+  default => 10,
 );
 
 has '_uuid' => (
@@ -207,7 +213,7 @@ event '_process_queue' => sub {
   return if $self->no_relay;
   $kernel->delay( '_process_queue', DELAY );
   $self->_easydbi->arrayhash(
-    sql => $sql->{queue},
+    sql => $sql->{queue} . ( $self->multiple ? $self->submissions : 1 ),
     event => '_queue_db_result',
   );
   return;
@@ -236,7 +242,7 @@ event '_queue_db_result' => sub {
       secret  => $self->secret,
       fact    => $report,
       uri     => $self->uri->as_string,
-      context => [ $row->{id}, $row->{attempts} ],
+      context => [ $row->{id}, $row->{attempts}, $self->_time() ],
       ( $self->multiple ? () : ( http_alias => $self->_http_alias ) ),
     );
     
@@ -254,10 +260,11 @@ event '_clear_processing' => sub {
 
 event '_submit_status' => sub {
   my ($kernel,$self,$res) = @_[KERNEL,OBJECT,ARG0];
-  my ($id,$attempts) = @{ $res->{context} };
+  my ($id,$attempts,$starttime) = @{ $res->{context} };
+  my $submit_time = $self->_time() - $starttime;
   $kernel->delay_set( '_clear_processing' => DELAY, $id );
   if ( $res->{success} ) {
-    warn "Submit '$id' success\n" if $self->debug;
+    warn "Submit '$id' (${submit_time}s) success\n" if $self->debug;
     $self->_easydbi->do(
       sql => $sql->{delete},
       event => '_generic_db_result',
@@ -266,7 +273,7 @@ event '_submit_status' => sub {
     );
   }
   else {
-    warn "Submit '$id' error: $res->{error}\n" . ( defined $res->{content} ? "$res->{content}\n" : '' ) if $self->debug;
+    warn "Submit '$id' (${submit_time}s) error: $res->{error}\n" . ( defined $res->{content} ? "$res->{content}\n" : '' ) if $self->debug;
     if ( defined $res->{content} and $res->{content} =~ /GUID conflicts with an existing object/i ) {
       $self->_easydbi->do(
         sql => $sql->{delete},
@@ -342,6 +349,7 @@ and a number of optional parameters:
   'debug', enable debugging information;
   'multiple', set to true to enable the Queue to use multiple PoCo-Client-HTTPs, default 0;
   'no_relay', set to true to disable report submissions to the Metabase, default 0;
+  'submissions', an int to control the number of parallel http clients ( used only if multiple == 1 ), default 10;
 
 =back
 

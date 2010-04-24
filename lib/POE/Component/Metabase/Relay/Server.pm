@@ -100,6 +100,17 @@ has 'no_relay' => (
   },
 );
 
+has 'submissions' => (
+  is => 'rw',
+  isa => 'Int',
+  default => 10,
+  trigger => sub {
+    my( $self, $new, $old ) = @_;
+    return if ! $self->_has_queue;
+    $self->queue->submissions( $new );
+  },
+);
+
 has '_profile' => (
   is => 'ro',
   isa => 'Metabase::User::Profile',
@@ -158,6 +169,7 @@ sub _build__queue {
     debug    => $self->debug,
     multiple => $self->multiple,
     no_relay => $self->no_relay,
+    submissions => $self->submissions,
   );
 }
 
@@ -342,6 +354,7 @@ and a number of optional parameters:
   'debug', enable debugging information;
   'multiple', set to true to enable the Queue to use multiple PoCo-Client-HTTPs, default 0;
   'no_relay', set to true to disable report submissions to the Metabase, default 0;
+  'submissions', an int to control the number of parallel http clients ( used only if multiple == 1 ), default 10;
 
 =back
 
