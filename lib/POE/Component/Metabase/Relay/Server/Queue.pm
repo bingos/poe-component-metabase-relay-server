@@ -257,7 +257,7 @@ event '_queue_db_result' => sub {
     warn $result->{error}, "\n";
     return;
   }
-warn "Queue SQL took " . ( $self->_time - $result->{_ts} ) . "s to process\n";
+# warn "Queue SQL took " . ( $self->_time - $result->{_ts} ) . "s to process\n";
   foreach my $row ( @{ $result->{result} } ) {
     # Have we seen this report before?
     if ( exists $self->_processing->{ $row->{id} } ) {
