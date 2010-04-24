@@ -175,7 +175,7 @@ sub build_table {
     $self->_easydbi->do(
       sql => 'PRAGMA synchronous = OFF',
       event => '_generic_db_result',
-      ts => $self->_time,
+      _ts => $self->_time,
     );
   }
 
