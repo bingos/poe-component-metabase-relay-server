@@ -153,6 +153,7 @@ sub START {
   $self->_easydbi->do(
     sql => $sql->{create},
     event => '_generic_db_result',
+    _ts => $self->_time,
   );
   $kernel->yield( 'do_vacuum' );
   if ( ! $self->multiple ) {
@@ -162,7 +163,7 @@ sub START {
       FollowRedirects => 2,
     );
   }
-  $kernel->delay( '_process_queue', DELAY ) if ! $self->no_relay;
+  $kernel->yield( '_process_queue' ) if ! $self->no_relay;
   return;
 }
 
@@ -190,7 +191,7 @@ event 'shutdown' => sub {
 
 event '_generic_db_result' => sub {
   my ($kernel,$self,$result) = @_[KERNEL,OBJECT,ARG0];
-  warn "DB result: " . JSON->new->pretty(1)->encode( $result ) . "\n" if $self->debug;
+  warn "DB result (" . ( $self->_time - $result->{_ts} ) . "s): " . JSON->new->pretty(1)->encode( $result ) . "\n" if $self->debug;
   $kernel->yield( '_process_queue' ) if $result->{_process};
   return;
 };
@@ -199,11 +200,13 @@ event 'submit' => sub {
   my ($kernel,$self,$fact) = @_[KERNEL,OBJECT,ARG0];
   return unless $fact and $fact->isa('Metabase::Fact');
 #  warn "Got a submission\n" if $self->debug;
+  my $timestamp = $self->_time;
   $self->_easydbi->do(
     sql => $sql->{insert},
     event => '_generic_db_result',
-    placeholders => [ $self->_uuid->create_b64(), $self->_time, 0, $self->_encode_fact( $fact ) ],
+    placeholders => [ $self->_uuid->create_b64(), $timestamp, 0, $self->_encode_fact( $fact ) ],
     ( $self->no_relay ? () : ( _process => 1 ) ),
+    _ts => $timestamp,
   );
   return;
 };
@@ -215,6 +218,7 @@ event '_process_queue' => sub {
   $self->_easydbi->arrayhash(
     sql => $sql->{queue} . ( $self->multiple ? $self->submissions : 1 ),
     event => '_queue_db_result',
+    _ts => $self->_time,
   );
   return;
 };
@@ -225,6 +229,7 @@ event '_queue_db_result' => sub {
     warn $result->{error}, "\n";
     return;
   }
+warn "Queue SQL took " . ( $self->_time - $result->{_ts} ) . "s to process\n";
   foreach my $row ( @{ $result->{result} } ) {
     # Have we seen this report before?
     if ( exists $self->_processing->{ $row->{id} } ) {
@@ -242,7 +247,7 @@ event '_queue_db_result' => sub {
       secret  => $self->secret,
       fact    => $report,
       uri     => $self->uri->as_string,
-      context => [ $row->{id}, $row->{attempts}, $self->_time() ],
+      context => [ $row->{id}, $row->{attempts}, $self->_time ],
       ( $self->multiple ? () : ( http_alias => $self->_http_alias ) ),
     );
     
@@ -261,24 +266,26 @@ event '_clear_processing' => sub {
 event '_submit_status' => sub {
   my ($kernel,$self,$res) = @_[KERNEL,OBJECT,ARG0];
   my ($id,$attempts,$starttime) = @{ $res->{context} };
-  my $submit_time = $self->_time() - $starttime;
+  my $timestamp = $self->_time;
   $kernel->delay_set( '_clear_processing' => DELAY, $id );
   if ( $res->{success} ) {
-    warn "Submit '$id' (${submit_time}s) success\n" if $self->debug;
+    warn "Submit '$id' (" . ( $timestamp - $starttime ) . "s) success\n" if $self->debug;
     $self->_easydbi->do(
       sql => $sql->{delete},
       event => '_generic_db_result',
       placeholders => [ $id ],
       ( $self->no_relay ? () : ( _process => 1 ) ),
+      _ts => $timestamp,
     );
   }
   else {
-    warn "Submit '$id' (${submit_time}s) error: $res->{error}\n" . ( defined $res->{content} ? "$res->{content}\n" : '' ) if $self->debug;
+    warn "Submit '$id' (" . ( $timestamp - $starttime ) . "s) error: $res->{error}\n" . ( defined $res->{content} ? "$res->{content}\n" : '' ) if $self->debug;
     if ( defined $res->{content} and $res->{content} =~ /GUID conflicts with an existing object/i ) {
       $self->_easydbi->do(
         sql => $sql->{delete},
         event => '_generic_db_result',
         placeholders => [ $id ],
+        _ts => $timestamp,
       );
     }
     else {
@@ -287,6 +294,7 @@ event '_submit_status' => sub {
         sql => $sql->{update},
         event => '_generic_db_result',
         placeholders => [ $attempts, $id ],
+        _ts => $timestamp,
       );
     }
   }
