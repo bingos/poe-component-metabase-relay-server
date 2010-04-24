@@ -24,6 +24,10 @@ my $sql = {
   'delete' => 'DELETE FROM queue where id = ?',
   'queue'  => 'SELECT * FROM queue ORDER BY attempts ASC, submitted ASC limit ', # the limit is appended via "submissions"
   'update' => 'UPDATE queue SET attempts = ? WHERE id = ?',
+  'addidx' => [
+	'CREATE INDEX IF NOT EXISTS queue_id ON queue ( id )',
+	'CREATE INDEX IF NOT EXISTS queue_att_sub ON queue ( attempts, submitted )',
+  ],
 };
 
 use MooseX::POE;
@@ -149,12 +153,7 @@ sub spawn {
  
 sub START {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
-  $self->_easydbi;
-  $self->_easydbi->do(
-    sql => $sql->{create},
-    event => '_generic_db_result',
-    _ts => $self->_time,
-  );
+  $self->build_table;
   $kernel->yield( 'do_vacuum' );
   if ( ! $self->multiple ) {
     $self->_set_http_alias( join '-', __PACKAGE__, $self->get_session_id );
@@ -165,6 +164,34 @@ sub START {
   }
   $kernel->yield( '_process_queue' ) if ! $self->no_relay;
   return;
+}
+
+sub build_table {
+  my $self = shift;
+
+  $self->_easydbi;
+
+  if ( $self->dsn =~ /^dbi\:SQLite/i ) {
+    $self->_easydbi->do(
+      sql => 'PRAGMA synchronous = OFF',
+      event => '_generic_db_result',
+      ts => $self->_time,
+    );
+  }
+
+  $self->_easydbi->do(
+    sql => $sql->{create},
+    event => '_generic_db_result',
+    _ts => $self->_time,
+  );
+
+  foreach my $idx ( @{ $sql->{addidx} } ) {
+    $self->_easydbi->do(
+      sql => $idx,
+      event => '_generic_db_result',
+      _ts => $self->_time,
+    );
+  }
 }
 
 event 'do_vacuum' => sub {
