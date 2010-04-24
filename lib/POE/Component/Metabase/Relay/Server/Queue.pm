@@ -172,6 +172,7 @@ event 'do_vacuum' => sub {
   $self->_easydbi->do(
     sql => 'VACUUM',
     event => '_generic_db_result',
+    _ts => $self->_time,
   );
 
   $kernel->delay( 'do_vacuum' => DELAY * 60 );
