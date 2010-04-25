@@ -212,7 +212,7 @@ event 'relayd_connected' => sub {
  
 event 'relayd_disconnected' => sub {
   my ($kernel,$self,$id) = @_[KERNEL,OBJECT,ARG0];
-  warn "Client Close '$id'\n" if $self->debug;
+#  warn "Client Close '$id'\n" if $self->debug;
   my $data = delete $self->_requests->{$id};
   my $report = eval { Storable::thaw($data); };
   if ( defined $report and ref $report and ref $report eq 'HASH' ) {
