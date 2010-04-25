@@ -219,7 +219,9 @@ event 'shutdown' => sub {
 
 event '_generic_db_result' => sub {
   my ($kernel,$self,$result) = @_[KERNEL,OBJECT,ARG0];
-  warn "DB result (" . ( $self->_time - $result->{_ts} ) . "s): " . JSON->new->pretty(1)->encode( $result ) . "\n" if $self->debug;
+  if ( $result->{error} ) {
+    warn "DB error (" . ( $self->_time - $result->{_ts} ) . "s): " . JSON->new->pretty(1)->encode( $result ) . "\n" if $self->debug;
+  }
   $kernel->yield( '_process_queue' ) if $result->{_process};
   return;
 };
@@ -268,7 +270,7 @@ event '_queue_db_result' => sub {
     }
 
     my $report = $self->_decode_fact( $row->{data} );
-    warn "Queue retrieved '$row->{id}' for processing\n" if $self->debug;
+#    warn "Queue retrieved '$row->{id}' for processing\n" if $self->debug;
     POE::Component::Metabase::Client::Submit->submit(
       event   => '_submit_status',
       profile => $self->profile,

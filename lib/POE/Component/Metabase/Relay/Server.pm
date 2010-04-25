@@ -206,7 +206,7 @@ event 'relayd_connected' => sub {
   # ARG0 is the client ID, ARG1 is the client's IP address, ARG2 is
   # the client's TCP port. ARG3 is our IP address and ARG4 is our socket port.
   my ($kernel,$self,$id,$ip) = @_[KERNEL,OBJECT,ARG0,ARG1];
-  warn "Client '$id' from $ip connected\n" if $self->debug;
+#  warn "Client '$id' from $ip connected\n" if $self->debug;
   return;
 };
  
