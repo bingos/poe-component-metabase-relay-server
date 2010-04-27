@@ -2,6 +2,7 @@ use strict;
 use inc::Module::Install;
 use Module::Install::ReadmeFromPod;
 use Module::Install::AutoLicense;
+use Module::Install::GithubMeta;
 name 'POE-Component-Metabase-Relay-Server';
 author 'Chris Williams <chris@bingosnet.co.uk>';
 version_from 'lib/POE/Component/Metabase/Relay/Server.pm';
