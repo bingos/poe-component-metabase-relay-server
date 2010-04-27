@@ -46,6 +46,8 @@ CONSTRUCTOR
           'db_opts', a hashref of DBD options that is passed to POE::Component::EasyDBI;
           'debug', enable debugging information;
           'multiple', set to true to enable the Queue to use multiple PoCo-Client-HTTPs, default 0;
+          'no_relay', set to true to disable report submissions to the Metabase, default 0;
+          'submissions', an int to control the number of parallel http clients ( used only if multiple == 1 ), default 10;
 
 AUTHOR
     Chris "BinGOs" Williams
