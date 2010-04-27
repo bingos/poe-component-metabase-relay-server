@@ -127,7 +127,7 @@ has '_secret' => (
  
 has '_relayd' => (
   accessor => 'relayd',
-  isa => 'Test::POE::Server::TCP',
+  isa => 'ArrayRef[Test::POE::Server::TCP]',
   lazy_build => 1,
   init_arg => undef,
 );
@@ -148,12 +148,23 @@ has '_requests' => (
 
 sub _build__relayd {
   my $self = shift;
-  Test::POE::Server::TCP->spawn(
+  if ( $self->address and ref $self->address eq 'ARRAY' ) {
+     my $aref = [];
+     push @$aref, 
+        Test::POE::Server::TCP->spawn(
+          address => $_,
+          port => $self->port,
+          prefix => 'relayd',
+          filter => POE::Filter::Stream->new(),
+        ) for @{ $self->address };
+     return $aref if scalar @$aref;
+  }
+  [ Test::POE::Server::TCP->spawn(
      address => $self->address,
      port => $self->port,
      prefix => 'relayd',
      filter => POE::Filter::Stream->new(),
-  );
+  ) ]
 }
 
 sub _build__queue {
@@ -291,8 +302,6 @@ sub _load_id_file {
   return 1;
 }
 
-
-
 no MooseX::POE;
  
 __PACKAGE__->meta->make_immutable;
@@ -355,6 +364,8 @@ and a number of optional parameters:
   'multiple', set to true to enable the Queue to use multiple PoCo-Client-HTTPs, default 0;
   'no_relay', set to true to disable report submissions to the Metabase, default 0;
   'submissions', an int to control the number of parallel http clients ( used only if multiple == 1 ), default 10;
+
+C<address> may be either an simple scalar value or an arrayref of addresses to bind to.
 
 =back
 

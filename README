@@ -49,6 +49,9 @@ CONSTRUCTOR
           'no_relay', set to true to disable report submissions to the Metabase, default 0;
           'submissions', an int to control the number of parallel http clients ( used only if multiple == 1 ), default 10;
 
+        "address" may be either an simple scalar value or an arrayref of
+        addresses to bind to.
+
 AUTHOR
     Chris "BinGOs" Williams
 

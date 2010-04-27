@@ -153,7 +153,7 @@ sub spawn {
  
 sub START {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
-  $self->build_table;
+  $self->_build_table;
   $kernel->yield( 'do_vacuum' );
   if ( ! $self->multiple ) {
     $self->_set_http_alias( join '-', __PACKAGE__, $self->get_session_id );
@@ -166,7 +166,7 @@ sub START {
   return;
 }
 
-sub build_table {
+sub _build_table {
   my $self = shift;
 
   $self->_easydbi;
