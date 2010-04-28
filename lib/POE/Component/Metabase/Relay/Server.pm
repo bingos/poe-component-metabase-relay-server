@@ -2,6 +2,7 @@ package POE::Component::Metabase::Relay::Server;
 
 use strict;
 use warnings;
+use Socket;
 use CPAN::Testers::Report;
 use POE qw[Filter::Stream];
 use POE::Component::Metabase::Relay::Server::Queue;
@@ -209,7 +210,9 @@ event 'shutdown' => sub {
  
 event 'relayd_registered' => sub {
   my ($kernel,$self,$relayd) = @_[KERNEL,OBJECT,ARG0];
-  warn "Listening on '", $relayd->port, "'\n" if $self->debug;
+  my ($port, $addr) = sockaddr_in($relayd->getsockname);
+  warn "Listening on '", join(q{:} => scalar gethostbyaddr($addr, AF_INET), $port), "'\n"
+    if $self->debug;
   $self->_set_port( $relayd->port );
   return;
 };
