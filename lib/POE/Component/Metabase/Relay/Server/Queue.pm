@@ -229,7 +229,6 @@ event '_generic_db_result' => sub {
 event 'submit' => sub {
   my ($kernel,$self,$fact) = @_[KERNEL,OBJECT,ARG0];
   return unless $fact and $fact->isa('Metabase::Fact');
-#  warn "Got a submission\n" if $self->debug;
   my $timestamp = $self->_time;
   $self->_easydbi->do(
     sql => $sql->{insert},
