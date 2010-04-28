@@ -28,17 +28,27 @@ my @fields = qw(
 use MooseX::POE;
 use MooseX::Types::Path::Class qw[File];
 use MooseX::Types::URI qw[Uri];
- 
-has 'address' => (
-  is => 'ro',
-);
- 
+
+{
+  use Moose::Util::TypeConstraints;
+  my $tc = subtype as 'ArrayRef[Str]';
+  coerce $tc, from 'Str', via { [$_] };
+
+  has 'address' => (
+    is => 'ro',
+    isa => $tc,
+    coerce => 1,
+  );
+
+  no Moose::Util::TypeConstraints;
+}
+
 has 'port' => (
   is => 'ro',
   default => sub { 0 },
   writer => '_set_port',
 );
- 
+
 has 'id_file' => (
   is       => 'ro',
   required => 1,
@@ -148,23 +158,14 @@ has '_requests' => (
 
 sub _build__relayd {
   my $self = shift;
-  if ( $self->address and ref $self->address eq 'ARRAY' ) {
-     my $aref = [];
-     push @$aref, 
-        Test::POE::Server::TCP->spawn(
-          address => $_,
-          port => $self->port,
-          prefix => 'relayd',
-          filter => POE::Filter::Stream->new(),
-        ) for @{ $self->address };
-     return $aref if scalar @$aref;
-  }
-  [ Test::POE::Server::TCP->spawn(
-     address => $self->address,
-     port => $self->port,
-     prefix => 'relayd',
-     filter => POE::Filter::Stream->new(),
-  ) ]
+  return [map {
+    Test::POE::Server::TCP->spawn(
+        address => $_,
+        port => $self->port,
+        prefix => 'relayd',
+        filter => POE::Filter::Stream->new(),
+    )
+  } @{ $self->address }]
 }
 
 sub _build__queue {
