@@ -27,6 +27,7 @@ requires 'Metabase::Fact' => '0.011';
 requires 'Metabase::User::Profile' => '0.003';
 requires 'Metabase::User::Secret' => '0.003';
 requires 'Moose' => '1.01';
+requires 'Moose::Util::TypeConstraints' => '1.01';
 requires 'MooseX::AttributeHelpers' => '0.23';
 requires 'MooseX::POE' => '0.205';
 requires 'MooseX::Types::Path::Class' => '0.05';
