@@ -1,4 +1,163 @@
 ==============================
+2010-04-28 23:05:48 +0100 0.08
+==============================
+
+  commit 4bcc5c5654543450b942675a35dbefdecad1ad77
+  Author: Chris Williams <chris@bingosnet.co.uk>
+  Date:   Wed Apr 28 23:05:48 2010 +0100
+  
+    Last tweaks.
+
+  commit a565afec2ecb447f1fc23f86fa76237af60cd47d
+  Author: Chris Williams <chris@bingosnet.co.uk>
+  Date:   Wed Apr 28 21:46:30 2010 +0100
+  
+    Bump version
+
+  commit 22ab11cad9857439de19b2e0a58b4f365c160542
+  Author: Chris Williams <chris@bingosnet.co.uk>
+  Date:   Tue Apr 27 23:02:16 2010 +0100
+  
+    Enable 'address' to be a string or an arrayref of addresses to bind
+    to.
+
+  commit 1ed58f5c009ee8638705b32ab2c6fe8945a442eb
+  Author: Florian Ragwitz <rafl@debian.org>
+  Date:   Wed Apr 28 01:16:26 2010 +0800
+  
+    Also require M::I::GithubMeta.
+
+  commit f2afff8797211bab75328a3a0ac4e429147a1149
+  Author: Florian Ragwitz <rafl@debian.org>
+  Date:   Wed Apr 28 00:44:47 2010 +0800
+  
+    Update README.
+
+  commit 5365bc94648ca4a43717357683b12c2ca01dd259
+  Author: Florian Ragwitz <rafl@debian.org>
+  Date:   Wed Apr 28 00:43:46 2010 +0800
+  
+    Specify the required M::I extensions
+
+    Make contributor's lifes easier by not having them figure out which
+    M::I extension is missing from an AUTOLOAD-generated error message.
+
+  commit 9a6403d6de252d8c5eca5200fe412b1bf15b1ef9
+  Author: Apocalypse <perl@0ne.us>
+  Date:   Sun Apr 25 10:21:20 2010 -0700
+  
+    found 1 more debug output to disable
+
+  commit 1740022bf4b73b0f6bdcbeb351721ff206ff2c49
+  Author: Apocalypse <perl@0ne.us>
+  Date:   Sat Apr 24 17:13:32 2010 -0700
+  
+    disable yet more debug output
+
+  commit 0788cdf330080379ce018b498a76b64689329a6e
+  Author: Apocalypse <perl@0ne.us>
+  Date:   Sat Apr 24 16:10:32 2010 -0700
+  
+    comment out queue db timing, it's unnecessary debug info now :)
+
+  commit c38f09edade08ebdc2da1ca95c09bcf92a923b78
+  Author: Apocalypse <perl@0ne.us>
+  Date:   Sat Apr 24 16:02:46 2010 -0700
+  
+    typo in ts, d0h
+
+  commit 32087b9f08432a692873e30aa794b424bc6e09b9
+  Author: Apocalypse <perl@0ne.us>
+  Date:   Sat Apr 24 16:00:38 2010 -0700
+  
+    add indexes to speed up searching and add SQLite PRAMGA synchronous
+
+  commit 3f98b056fe16851f1c0b586f0856987fc2897e08
+  Author: Apocalypse <perl@0ne.us>
+  Date:   Sat Apr 24 14:51:05 2010 -0700
+  
+    add missing ts for VACUUM
+
+  commit 1ff8b4c4c37647d199c2de61a8447388b889f4cd
+  Author: Apocalypse <perl@0ne.us>
+  Date:   Sat Apr 24 14:47:06 2010 -0700
+  
+    add timing for DB operations because I think SQLite is slow :(
+
+  commit ec2a38f1c59a19e183597b3b14036da6fc99be31
+  Author: Apocalypse <perl@0ne.us>
+  Date:   Sat Apr 24 14:25:27 2010 -0700
+  
+    silence some more debug output
+
+  commit 453ca3a6eab7377777d1f73fc65e4159ec3c3260
+  Author: Apocalypse <perl@0ne.us>
+  Date:   Sat Apr 24 14:24:12 2010 -0700
+  
+    add 'submissions' to control parallelism, and add timing output
+
+  commit 0f69d3e9276a1a2581c8bcf21ea620841c6b35a9
+  Author: Apocalypse <perl@0ne.us>
+  Date:   Fri Apr 23 12:02:06 2010 -0700
+  
+    remove unnecessary debug output, with the previous patch it's now
+    spamming the logs
+
+  commit 7fcfb569b7778db534180b950e9eb2f21bf3c44b
+  Author: Apocalypse <perl@0ne.us>
+  Date:   Fri Apr 23 11:48:14 2010 -0700
+  
+    fix a bug in relaying when no reports is submitted but have N reports
+    queued
+
+  commit 57030793229d278661b16ab7ea6c1cf5bd42bad6
+  Author: Apocalypse <perl@0ne.us>
+  Date:   Thu Apr 22 15:08:14 2010 -0700
+  
+    add no_relay option to control relaying
+
+  commit 9997de2bcf117f6dee74a428990028c4fd993a03
+  Author: Apocalypse <perl@0ne.us>
+  Date:   Sun Apr 11 21:56:39 2010 +0100
+  
+    fix content error when metabase-server returns auth failure with no
+    content
+
+  commit f76cd2c04d36b34ca9d4b0aef9bee50e27fb7fa9
+  Author: Chris Williams <chris@bingosnet.co.uk>
+  Date:   Sun Apr 11 21:53:35 2010 +0100
+  
+    Revert "fix content error when metabase-server returns auth failure
+    with no content"
+
+    This reverts commit bdfd90188489fde8efc1df18ba52ad178160fc4b.
+
+  commit b98df9b3d14ba570162ba35945e0d25c8767d176
+  Author: Chris Williams <chris@bingosnet.co.uk>
+  Date:   Sun Apr 11 21:35:39 2010 +0100
+  
+    Sync in updated Changes
+
+  commit b4f2ae27807fded7f1b065fab2c79196bebe75f2
+  Author: Chris Williams <chris@bingosnet.co.uk>
+  Date:   Mon Apr 5 22:47:36 2010 +0100
+  
+    Version bump
+
+  commit e1298477c8be9eca344114c615c9dcaf0b1713b3
+  Author: Chris Williams <chris@bingosnet.co.uk>
+  Date:   Mon Apr 5 22:34:42 2010 +0100
+  
+    Updated Changes
+
+  commit bdfd90188489fde8efc1df18ba52ad178160fc4b
+  Author: Apocalypse <perl@0ne.us>
+  Date:   Sun Apr 11 10:31:05 2010 -0700
+  
+    fix content error when metabase-server returns auth failure with no
+    content 
+
+==============================
 2010-04-05 22:47:36 +0100 0.06
 ==============================
 
