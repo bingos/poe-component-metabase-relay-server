@@ -1,4 +1,32 @@
 ==============================
+2010-04-29 00:41:20 +0100 0.10
+==============================
+
+  commit b9977e94b3ba4d045f55429014b5d08d82f6f8bc
+  Author: Chris Williams <chris@bingosnet.co.uk>
+  Date:   Thu Apr 29 00:41:20 2010 +0100
+  
+    Bump version
+
+  commit 0f977a647480768e50f3472f1caa7990734b8bad
+  Author: Chris Williams <chris@bingosnet.co.uk>
+  Date:   Thu Apr 29 00:39:09 2010 +0100
+  
+    Sync up
+
+  commit 14faaf90e398adbb524dae7ac2e99da28954b247
+  Author: Florian Ragwitz <rafl@debian.org>
+  Date:   Thu Apr 29 05:24:58 2010 +0800
+  
+    Better diagnostics in debug mode.
+
+  commit 77935fac95503883c634e07f92733a42dadf90a5
+  Author: Florian Ragwitz <rafl@debian.org>
+  Date:   Thu Apr 29 04:57:06 2010 +0800
+  
+    Simplify handling of multiple addresses. 
+
+==============================
 2010-04-28 23:05:48 +0100 0.08
 ==============================
 
