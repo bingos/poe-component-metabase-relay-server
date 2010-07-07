@@ -1,5 +1,7 @@
 package POE::Component::Metabase::Relay::Server::Queue;
 
+# ABSTRACT: Submission queue for the metabase relay
+
 use strict;
 use warnings;
 use POE qw[Component::EasyDBI];
@@ -12,11 +14,16 @@ use JSON ();
 use Params::Util qw[_HASH];
 use Time::HiRes ();
 use Data::UUID;
-use vars qw[$VERSION];
 
 use constant DELAY => 150;
 
-$VERSION = '0.12';
+=begin Pod::Coverage
+
+  DELAY
+
+=end Pod::Coverage
+
+=cut
 
 my $sql = {
   'create' => 'CREATE TABLE IF NOT EXISTS queue ( id varchar(150), submitted varchar(32), attempts INTEGER, data BLOB )',
@@ -165,6 +172,14 @@ sub START {
   $kernel->yield( '_process_queue' ) if ! $self->no_relay;
   return;
 }
+
+=begin Pod::Coverage
+
+  START
+
+=end Pod::Coverage
+
+=cut
 
 sub _build_table {
   my $self = shift;
@@ -350,11 +365,7 @@ __PACKAGE__->meta->make_immutable;
  
 1;
 
-__END__
-
-=head1 NAME
-
-POE::Component::Metabase::Relay::Server::Queue - Submission queue for the metabase relay
+=pod
 
 =head1 DESCRIPTION
 
@@ -403,16 +414,6 @@ Takes one parameter a L<Metabase::Fact> to submit.
 Terminates the component.
 
 =back
-
-=head1 AUTHOR
-
-Chris C<BinGOs> Williams
-
-=head1 LICENSE
-
-Copyright E<copy> Chris Williams
-
-This module may be used, modified, and distributed under the same terms as Perl itself. Please see the license that came with your Perl distribution for details.
 
 =head1 SEE ALSO
 
