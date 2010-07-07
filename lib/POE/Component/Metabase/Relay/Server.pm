@@ -1,4 +1,7 @@
 package POE::Component::Metabase::Relay::Server;
+BEGIN {
+  $POE::Component::Metabase::Relay::Server::VERSION = '0.12';
+}
 
 # ABSTRACT: A Metabase relay server component
 
@@ -37,7 +40,18 @@ use MooseX::Types::URI qw[Uri];
   has 'address' => (
     is => 'ro',
     isa => $tc,
+    default => 0,
     coerce => 1,
+  );
+
+  my $ps = subtype as 'Str', where { $poe_kernel->alias_resolve( $_ ) };
+  coerce $ps, from 'Str', via { $poe_kernel->alias_resolve( $_ )->ID };
+
+  has 'session' => ( 
+    is => 'ro',
+    isa => $ps,
+    coerce => 1,
+    writer => '_set_session',
   );
 
   no Moose::Util::TypeConstraints;
@@ -99,6 +113,11 @@ has 'multiple' => (
   default => 0,
 );
 
+has 'recv_event' => (
+  is => 'ro',
+  isa => 'Str',
+);
+
 has 'no_relay' => (
   is => 'rw',
   isa => 'Bool',
@@ -139,6 +158,7 @@ has '_relayd' => (
   accessor => 'relayd',
   isa => 'ArrayRef[Test::POE::Server::TCP]',
   lazy_build => 1,
+  auto_deref => 1,
   init_arg => undef,
 );
 
@@ -190,25 +210,22 @@ sub spawn {
 }
  
 sub START {
-  my ($kernel,$self) = @_[KERNEL,OBJECT];
+  my ($kernel,$self,$sender) = @_[KERNEL,OBJECT,SENDER];
+  if ( $kernel == $sender and !$self->session ) {
+    Carp::croak "Not called from another POE session and 'session' wasn't set\n";
+  }
+  $self->_set_session( $sender->ID ) unless $self->session;
   $self->_load_id_file;
   $self->relayd;
   $self->queue;
   return;
 }
 
-=begin Pod::Coverage
-
-  START
-
-=end Pod::Coverage
-
-=cut
 
 event 'shutdown' => sub {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
-  $self->relayd->shutdown;
-  $kernel->post( 
+  $_->shutdown for $self->relayd;
+  $poe_kernel->post( 
     $self->queue->get_session_id,
     'shutdown',
   );
@@ -230,11 +247,11 @@ event 'relayd_connected' => sub {
 };
  
 event 'relayd_disconnected' => sub {
-  my ($kernel,$self,$id) = @_[KERNEL,OBJECT,ARG0];
+  my ($kernel,$self,$id,$ip) = @_[KERNEL,OBJECT,ARG0,ARG1];
   my $data = delete $self->_requests->{$id};
   my $report = eval { Storable::thaw($data); };
   if ( defined $report and ref $report and ref $report eq 'HASH' ) {
-    $kernel->yield( 'process_report', $report );
+    $kernel->yield( 'process_report', $report, $ip );
   } else {
     warn "Client '$id' failed to send parsable data!\n" if $self->debug;
   }
@@ -248,7 +265,7 @@ event 'relayd_client_input' => sub {
 };
 
 event 'process_report' => sub {
-  my ($kernel,$self,$data) = @_[KERNEL,OBJECT,ARG0];
+  my ($kernel,$self,$data,$ip) = @_[KERNEL,OBJECT,ARG0,ARG1];
   my @present = grep { defined $data->{$_} } @fields;
   return unless scalar @present == scalar @fields;
   # Build CPAN::Testers::Report with its various component facts.
@@ -257,6 +274,9 @@ event 'process_report' => sub {
   ); };
 
   return unless $metabase_report;
+
+  $kernel->post( $self->session, $self->recv_event, $data, $ip )
+    if $self->recv_event;
 
   $metabase_report->add( 'CPAN::Testers::Fact::LegacyReport' => {
     map { ( $_ => $data->{$_} ) } qw(grade osname osversion archname perl_version textreport)
@@ -312,7 +332,17 @@ __PACKAGE__->meta->make_immutable;
  
 1;
 
+
+__END__
 =pod
+
+=head1 NAME
+
+POE::Component::Metabase::Relay::Server - A Metabase relay server component
+
+=head1 VERSION
+
+version 0.12
 
 =head1 SYNOPSIS
 
@@ -337,6 +367,8 @@ __PACKAGE__->meta->make_immutable;
 POE::Component::Metabase::Relay::Server is a relay server for L<Metabase>. It provides a listener
 that accepts connections from L<Test::Reporter::Transport::Socket> based CPAN Testers and 
 relays the L<Storable> serialised data to L<Metabase> using L<POE::Component::Metabase::Client::Submit>.
+
+=for Pod::Coverage   START
 
 =head1 CONSTRUCTOR
 
@@ -368,4 +400,16 @@ C<address> may be either an simple scalar value or an arrayref of addresses to b
 
 =back
 
+=head1 AUTHOR
+
+Chris Williams <chris@bingosnet.co.uk>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2010 by Chris Williams.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
 =cut
+
