@@ -208,10 +208,12 @@ sub spawn {
  
 sub START {
   my ($kernel,$self,$sender) = @_[KERNEL,OBJECT,SENDER];
-  if ( $kernel == $sender and !$self->session ) {
+  if ( $kernel == $sender and $self->recv_event and !$self->session ) {
     Carp::croak "Not called from another POE session and 'session' wasn't set\n";
   }
-  $self->_set_session( $sender->ID ) unless $self->session;
+  if ( $self->recv_event ) {
+    $self->_set_session( $sender->ID ) unless $self->session;
+  }
   $self->_load_id_file;
   $self->relayd;
   $self->queue;
