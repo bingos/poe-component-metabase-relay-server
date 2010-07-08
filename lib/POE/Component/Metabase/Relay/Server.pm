@@ -395,8 +395,31 @@ and a number of optional parameters:
   'multiple', set to true to enable the Queue to use multiple PoCo-Client-HTTPs, default 0;
   'no_relay', set to true to disable report submissions to the Metabase, default 0;
   'submissions', an int to control the number of parallel http clients ( used only if multiple == 1 ), default 10;
+  'session', a POE::Session alias or session ID to send events to;
+  'recv_event', an event to be triggered when reports are received by the relay;
 
 C<address> may be either an simple scalar value or an arrayref of addresses to bind to.
+
+If C<recv_event> is specified an event will be sent for every report received by the relay server.
+Unless C<session> is specified this event will be sent to the parent session of the component.
+
+=back
+
+=head1 OUTPUT EVENTS
+
+If C<recv_event> is specified to C<spawn>, an event will be sent with the following:
+
+C<ARG0> will be a C<HASHREF> with the following keys:
+
+ osversion
+ distfile
+ archname
+ textreport
+ osname
+ perl_version
+ grade
+
+C<ARG1> will be the IP address of the client that sent the report.
 
 =back
 
@@ -412,4 +435,3 @@ This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =cut
-
