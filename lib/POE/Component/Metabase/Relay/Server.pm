@@ -251,8 +251,11 @@ event 'relayd_disconnected' => sub {
   my $report = eval { Storable::thaw($data); };
   if ( defined $report and ref $report and ref $report eq 'HASH' ) {
     $kernel->yield( 'process_report', $report, $ip );
-  } else {
-    warn "Client '$id' failed to send parsable data!\n" if $self->debug;
+  } 
+  else {
+    return unless $self->debug;
+    warn "Client '$id' failed to send parsable data!\n";
+    warn "The error from Storable::thaw was '$@'\n";
   }
   return;
 };
@@ -409,5 +412,7 @@ C<ARG0> will be a C<HASHREF> with the following keys:
  grade
 
 C<ARG1> will be the IP address of the client that sent the report.
+
+If C<queue_event> is specified to C<spawn>, an event will be sent for particular changes in queue status
 
 =cut
