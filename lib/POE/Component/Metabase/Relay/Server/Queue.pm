@@ -6,6 +6,7 @@ use strict;
 use warnings;
 use POE qw[Component::EasyDBI];
 use POE::Component::Client::HTTP;
+use POE::Component::Resolver;
 use POE::Component::Metabase::Client::Submit;
 use CPAN::Testers::Report     ();
 use Metabase::User::Profile   ();
@@ -58,7 +59,7 @@ has 'profile' => (
   isa => 'Metabase::User::Profile',
   required => 1,
 );
- 
+
 has 'secret' => (
   is => 'ro',
   isa => 'Metabase::User::Secret',
@@ -146,6 +147,13 @@ has _http_alias => (
   writer => '_set_http_alias',
 );
 
+has _resolver => (
+  is => 'ro',
+  isa => 'Str',
+  init_arg => undef,
+  writer => '_set_resolver',
+);
+
 has '_processing' => (
   is => 'ro',
   isa => 'HashRef',
@@ -170,12 +178,15 @@ sub _build__uuid {
 sub spawn {
   shift->new(@_);
 }
- 
+
 sub START {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
   $self->_build_table;
   $kernel->yield( 'do_vacuum' );
-  if ( ! $self->multiple ) {
+  if ( $self->multiple ) {
+    $self->_set_resolver( POE::Component::Resolver->new() );
+  }
+  else {
     $self->_set_http_alias( join '-', __PACKAGE__, $self->get_session_id );
     POE::Component::Client::HTTP->spawn(
       Alias           => $self->_http_alias,
@@ -231,7 +242,7 @@ event 'shutdown' => sub {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
   $kernel->alarm_remove_all();
   $kernel->post( $self->_easydbi->ID, 'shutdown' );
-  $kernel->post( 
+  $kernel->post(
     $self->_http_alias,
     'shutdown',
   );
@@ -298,9 +309,9 @@ event '_queue_db_result' => sub {
       fact    => $report,
       uri     => $self->uri->as_string,
       context => [ $row->{id}, $row->{attempts}, $self->_time ],
-      ( $self->multiple ? () : ( http_alias => $self->_http_alias ) ),
+      ( $self->multiple ? ( resolver => $self->_resolver ) : ( http_alias => $self->_http_alias ) ),
     );
-    
+
   }
   return;
 };
@@ -376,9 +387,9 @@ sub _decode_fact {
 }
 
 no MooseX::POE;
- 
+
 __PACKAGE__->meta->make_immutable;
- 
+
 1;
 
 =pod
@@ -390,9 +401,9 @@ POE::Component::Metabase::Relay::Server::Queue is the submission queue for L<POE
 It is based on L<POE::Component::EasyDBI> database and uses L<POE::Component::Metabase::Client::Submit> to send
 reports to a L<Metabase> server.
 
-=for Pod::Coverage   DELAY
+=for Pod::Coverage DELAY
 
-=for Pod::Coverage   START
+=for Pod::Coverage START
 
 =head1 CONSTRUCTOR
 
