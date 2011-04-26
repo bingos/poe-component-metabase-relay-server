@@ -182,7 +182,7 @@ sub spawn {
 sub START {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
   $self->_build_table;
-  $kernel->yield( 'do_vacuum' );
+  $kernel->yield( 'do_vacuum', 'process' );
   if ( $self->multiple ) {
     $self->_set_resolver( POE::Component::Resolver->new() );
   }
@@ -227,11 +227,12 @@ sub _build_table {
 }
 
 event 'do_vacuum' => sub {
-  my ($kernel,$self) = @_[KERNEL,OBJECT];
+  my ($kernel,$self,$process) = @_[KERNEL,OBJECT,ARG0];
   $self->_easydbi->do(
     sql => 'VACUUM',
     event => '_generic_db_result',
     _ts => $self->_time,
+    ( $process ? ( _process => 1 ) : () ),
   );
 
   $kernel->delay( 'do_vacuum' => DELAY * 60 );
