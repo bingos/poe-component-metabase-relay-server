@@ -149,7 +149,7 @@ has _http_alias => (
 
 has _resolver => (
   is => 'ro',
-  isa => 'Str',
+  isa => 'POE::Component::Resolver',
   init_arg => undef,
   writer => '_set_resolver',
 );

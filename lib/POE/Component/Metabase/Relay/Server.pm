@@ -310,18 +310,18 @@ sub _load_id_file {
   my $self = shift;
 
   open my $fh, '<', $self->id_file
-    or Carp::confess __PACKAGE__. ": could not read ID file '$self->id_file'"
-    . "\n$!";
+    or Carp::confess __PACKAGE__. ": could not read ID file '" . $self->id_file
+    . "'\n$!";
 
   my $data = JSON->new->decode( do { local $/; <$fh> } );
 
   my $profile = eval { Metabase::User::Profile->from_struct($data->[0]) }
     or Carp::confess __PACKAGE__ . ": could not load Metabase profile\n"
-    . "from '$self->id_file':\n$@";
+    . "from '" . $self->id_file . "':\n$@";
 
   my $secret = eval { Metabase::User::Secret->from_struct($data->[1]) }
     or Carp::confess __PACKAGE__ . ": could not load Metabase secret\n"
-    . "from '$self->id_file':\n $@";
+    . "from '" . $self->id_file . "':\n $@";
 
   $self->_set_profile( $profile );
   $self->_set_secret( $secret );
