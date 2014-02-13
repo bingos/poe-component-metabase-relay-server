@@ -184,7 +184,7 @@ sub START {
   $self->_build_table;
   $kernel->yield( 'do_vacuum', 'process' );
   if ( $self->multiple ) {
-    $self->_set_resolver( POE::Component::Resolver->new() );
+    $self->_set_resolver( BINGOS::POE::Component::Resolver->new() );
   }
   else {
     $self->_set_http_alias( join '-', __PACKAGE__, $self->get_session_id );
@@ -247,6 +247,8 @@ event 'shutdown' => sub {
     $self->_http_alias,
     'shutdown',
   );
+  $self->_resolver->_really_shutdown
+    if $self->multiple && $self->_resolver;
   return;
 };
 
@@ -390,6 +392,20 @@ sub _decode_fact {
 no MooseX::POE;
 
 __PACKAGE__->meta->make_immutable;
+
+package
+  BINGOS::POE::Component::Resolver;
+
+use base qw[POE::Component::Resolver];
+
+#noop
+sub shutdown {
+  return;
+}
+
+sub _really_shutdown {
+  shift->SUPER::shutdown;
+}
 
 1;
 
