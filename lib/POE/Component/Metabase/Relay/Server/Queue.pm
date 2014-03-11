@@ -11,6 +11,7 @@ use POE::Component::Metabase::Client::Submit;
 use CPAN::Testers::Report     ();
 use Metabase::User::Profile   ();
 use Metabase::User::Secret    ();
+use Module::Load::Conditional qw[can_load];
 use JSON ();
 use Params::Util qw[_HASH];
 use Time::HiRes ();
@@ -101,6 +102,7 @@ has 'multiple' => (
   is => 'ro',
   isa => 'Bool',
   default => 0,
+  writer => '_set_multiple',
 );
 
 has 'db_opts' => (
@@ -118,6 +120,12 @@ has 'no_relay' => (
     return if ! $self->_has_easydbi;
     $self->yield( '_process_queue' ) if ! $new;
   },
+);
+
+has 'no_relay' => (
+  is => 'ro',
+  isa => 'Bool',
+  default => 0,
 );
 
 has 'submissions' => (
@@ -183,7 +191,15 @@ sub START {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
   $self->_build_table;
   $kernel->yield( 'do_vacuum', 'process' );
-  if ( $self->multiple ) {
+  if ( can_load( modules => { 'POE::Component::Curl::Multi' => '0.06' } ) ) {
+    $self->_set_multiple( 0 );
+    $self->_set_http_alias( join '-', __PACKAGE__, $self->get_session_id );
+    POE::Component::Curl::Multi->spawn(
+      Alias           => $self->_http_alias,
+      FollowRedirects => 2,
+    );
+  }
+  elsif ( $self->multiple ) {
     $self->_set_resolver( BINGOS::POE::Component::Resolver->new() );
   }
   else {
@@ -445,6 +461,7 @@ and a number of optional parameters:
   'debug', enable debugging information;
   'multiple', set to true to enable the Queue to use multiple PoCo-Client-HTTPs, default 0;
   'no_relay', set to true to disable report submissions to the Metabase, default 0;
+  'no_curl',  set to true to disable automatic usage of POE::Component::Curl::Multi, default 0;
   'submissions', an int to control the number of parallel http clients ( used only if multiple == 1 ), default 10;
 
 =back

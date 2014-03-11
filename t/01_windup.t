@@ -9,10 +9,11 @@ POE::Session->create(
     _start => sub { 
       $poe_kernel->delay( '_exit', 10 );
       $_[HEAP]->{test_httpd} = POE::Component::Metabase::Relay::Server->spawn(
-        id_file => 't/example_id.json', 
+        id_file => 't/example_id.json',
         dsn     => 'dbi:SQLite:dbname=',
         uri     => 'https://metabase.example.foo/',
         debug   => 0,
+        no_curl => 1, # disable PoCo-Curl-Multi during testing
       );
       isa_ok( $_[HEAP]->{test_httpd}, q[POE::Component::Metabase::Relay::Server] );
       return;
