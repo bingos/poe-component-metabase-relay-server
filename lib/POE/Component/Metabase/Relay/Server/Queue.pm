@@ -122,7 +122,7 @@ has 'no_relay' => (
   },
 );
 
-has 'no_relay' => (
+has 'no_curl' => (
   is => 'ro',
   isa => 'Bool',
   default => 0,
@@ -191,7 +191,7 @@ sub START {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
   $self->_build_table;
   $kernel->yield( 'do_vacuum', 'process' );
-  if ( can_load( modules => { 'POE::Component::Curl::Multi' => '0.06' } ) ) {
+  if ( !$self->no_curl && can_load( modules => { 'POE::Component::Curl::Multi' => '0.08' } ) ) {
     $self->_set_multiple( 0 );
     $self->_set_http_alias( join '-', __PACKAGE__, $self->get_session_id );
     POE::Component::Curl::Multi->spawn(
