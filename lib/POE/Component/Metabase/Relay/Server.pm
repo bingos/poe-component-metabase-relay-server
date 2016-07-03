@@ -1,5 +1,4 @@
 package POE::Component::Metabase::Relay::Server;
-
 # ABSTRACT: A Metabase relay server component
 
 use strict;
@@ -240,9 +239,20 @@ event 'shutdown' => sub {
 
 event 'relayd_registered' => sub {
   my ($kernel,$self,$relayd) = @_[KERNEL,OBJECT,ARG0];
-  my ($port, $addr) = Socket::sockaddr_in($relayd->getsockname);
-  warn "Listening on '", join(q{:} => scalar gethostbyaddr($addr, Socket::AF_INET), $port), "'\n"
-    if $self->debug;
+  my ($port, $addr) = Socket::unpack_sockaddr_in($relayd->getsockname);
+
+  if ($self->debug) {
+      my $hostname = scalar(gethostbyaddr($addr, Socket::AF_INET));
+
+      if (defined($hostname)) {
+          warn "Listening on '", join(q{:} => $hostname, $port), "'\n";
+      } else {
+          my $dotted_num = Socket::inet_ntoa($addr);
+          warn "Listening on '", join(q{:} => $dotted_num, $port), "'\n";
+      }
+
+  }
+
   $self->_set_port( $relayd->port );
   return;
 };
@@ -341,7 +351,19 @@ __PACKAGE__->meta->make_immutable;
 
 1;
 
+__END__
+
 =pod
+
+=encoding UTF-8
+
+=head1 NAME
+
+POE::Component::Metabase::Relay::Server - A Metabase relay server component
+
+=head1 VERSION
+
+version 0.34
 
 =head1 SYNOPSIS
 
@@ -371,7 +393,7 @@ L<POE::Component::Client::HTTP> is used to submit reports usually, but if versio
 L<POE::Component::Curl::Multi> is found to be installed, this will be used in preference. You can
 disable this usage using the C<no_curl> option to C<spawn>.
 
-=for Pod::Coverage   START
+=for Pod::Coverage START
 
 =head1 CONSTRUCTOR
 
@@ -426,5 +448,16 @@ C<ARG0> will be a C<HASHREF> with the following keys:
 C<ARG1> will be the IP address of the client that sent the report.
 
 If C<queue_event> is specified to C<spawn>, an event will be sent for particular changes in queue status
+
+=head1 AUTHOR
+
+Chris Williams <chris@bingosnet.co.uk>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2014 by Chris Williams.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
 =cut
