@@ -12,7 +12,7 @@ use CPAN::Testers::Report     ();
 use Metabase::User::Profile   ();
 use Metabase::User::Secret    ();
 use Module::Load::Conditional qw[can_load];
-use JSON ();
+use JSON::MaybeXS;
 use Params::Util qw[_HASH];
 use Time::HiRes ();
 use Data::UUID;
