@@ -10,7 +10,7 @@ use Test::POE::Server::TCP;
 use Carp                      ();
 use Storable                  ();
 use Socket                    ();
-use JSON                      ();
+use JSON::MaybeXS;
 use Metabase::User::Profile   ();
 use Metabase::User::Secret    ();
 
